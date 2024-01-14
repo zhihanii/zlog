@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	logger = newZapLogger()
+	logger = newZapLogger(NewOptions())
 	mu     sync.Mutex
 )
 
@@ -35,14 +35,14 @@ type Logger interface {
 var _ Logger = &zapLogger{}
 
 // Init initializes logger with specified options.
-func Init(opts ...Option) {
+func Init(o *Options) {
 	mu.Lock()
 	defer mu.Unlock()
-	logger = newZapLogger(opts...)
+	logger = newZapLogger(o)
 }
 
-func New(opts ...Option) Logger {
-	return newZapLogger(opts...)
+func New(o *Options) Logger {
+	return newZapLogger(o)
 }
 
 func Debug(msg string, fields ...Field) {
@@ -146,12 +146,7 @@ type zapLogger struct {
 	sl *zap.SugaredLogger
 }
 
-func newZapLogger(opts ...Option) *zapLogger {
-	o := NewOptions()
-	for _, opt := range opts {
-		opt(o)
-	}
-
+func newZapLogger(o *Options) *zapLogger {
 	var zapLevel zapcore.Level
 	if err := zapLevel.UnmarshalText([]byte(o.Level)); err != nil {
 		zapLevel = zapcore.InfoLevel
